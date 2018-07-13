@@ -77,6 +77,11 @@ def findPath():
 
     return ret
 
+@app.route('/getPath',methods=["POST"])
+def getPath():
+    _id = req.form.get('id')
+    path = mongo.db.paths.find_one({"_id":ObjectId(_id)},{"_id":False})
+    return json.dumps(path)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
