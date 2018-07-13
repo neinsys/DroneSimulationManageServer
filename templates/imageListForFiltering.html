@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageList</title>
+    <style type="text/css">
+        body{
+            color:white;
+        }
+    </style>
+</head>
+<body>
+<form method="POST" action="filteringImage">
+    {% for image in images %}
+        <input type="checkbox" name="image" value="{{ image._id }}">{{ image.filename }} - {{ image.points|length }}<br>
+    {% endfor %}
+    <input type="text" name="number" value="1000">점 갯수<br>
+    <input type="submit" value="전송">
+</form>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageList</title>
+    <style type="text/css">
+        body{
+            color:white;
+        }
+    </style>
+</head>
+<body>
+<form method="POST" action="findPath">
+    {% for image in images %}
+        <input type="checkbox" name="image" value="{{ image._id }}">{{ image.filename }} - {{ image.points|length }}<br>
+    {% endfor %}
+    <input type="text" name="rest" value="0">이미지간 간격<br>
+    <input type="radio" name="algorithm" value="MCMF" checked="checked">MCMF
+    <input type="radio" name="algorithm" value="Dinic">Dinic
+    <input type="radio" name="algorithm" value="DinicAndMCMF">DinicAndMCMF<br>
+    <input type="submit" value="전송">
+</form>
+</body>
+</html>
