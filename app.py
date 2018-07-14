@@ -59,7 +59,9 @@ def filteringImage():
 
 @app.route('/imageList')
 def imageList():
-    images = mongo.db.filteringImage.find()
+    images = list(mongo.db.filteringImage.find())
+
+    images = sorted(images,key=lambda x:x["filename"])
     return render_template("imageList.html",images=images)
 
 @app.route('/findPath',methods=["POST"])
