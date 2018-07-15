@@ -2,7 +2,9 @@ from flask import Flask,render_template,request as req
 from flask_pymongo import PyMongo
 import requests
 import json
+import cv2
 from bson.objectid import ObjectId
+import numpy as np
 
 droneURL = "http://127.0.0.1:8080"
 
@@ -32,16 +34,41 @@ def insertImage():
 @app.route('/insertImagePost',methods=["POST"])
 def insertImagePost():
     files = req.files.getlist("file")
-    files_dict = {}
+    files_dict_3d = {}
+    files_dict_2d={}
     for file in files:
-        files_dict[file.filename]=file.read()
+        if file.filename[-4:].lower() == ".obj":
+            files_dict_3d[file.filename]=file.read()
+        else:
+            files_dict_2d[file.filename]=file.read()
     #headers = {"content-type":"multipart/form-data"}
-    res = requests.post(droneURL+"/getPointsByObj",files=files_dict)
-    pcs = res.json()
-    ret = json.dumps(pcs)
-    for pc in pcs:
+    ret = ""
+    if files_dict_3d:
+        res = requests.post(droneURL+"/getPointsByObj",files=files_dict_3d)
+        pcs = res.json()
+        ret = json.dumps(pcs)
+        for pc in pcs:
 
-        mongo.db.image.insert(pc)
+            mongo.db.image.insert(pc)
+    if files_dict_2d:
+        for filename in files_dict_2d.keys():
+            nparr = np.fromstring(files_dict_2d[filename], np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+
+            edge = cv2.Canny(image, 1, 200)
+
+            image_dict = {}
+            image_dict["filename"]=filename
+            image_dict["points"] = []
+            cnt = 0
+            for i in range(0, len(edge)):
+                for j in range(0, len(edge[i])):
+                    if edge[i][j] > 0:
+                        image_dict["points"].append("{}.0 0.0 {}.0".format(-j,-i))
+                        cnt = cnt + 1
+
+            print(cnt)
+            mongo.db.image.insert(image_dict)
     return ret
 
 @app.route('/filteringImage',methods=["POST"])
