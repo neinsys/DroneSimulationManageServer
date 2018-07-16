@@ -75,8 +75,10 @@ def insertImagePost():
 def filteringImage():
     checkbox = req.form.getlist("image")
     num=req.form.get("number")
+    leaf_size=req.form.get("leaf_size")
+    width=req.form.get("width")
     images = [mongo.db.image.find_one({"_id": ObjectId(_id)}, {"_id": False}) for _id in checkbox]
-    para={"number":int(num),"objs":images}
+    para={"number":int(num),"objs":images,"leaf_size":float(leaf_size),"width":float(width)}
     res = requests.post(droneURL+"/filteringPoints",data=json.dumps(para))
     pcs = res.json()
     ret = json.dumps(pcs)
