@@ -108,6 +108,15 @@ def findPath():
 
     return ret
 
+@app.route('/pathList')
+def pathList():
+    paths = list(mongo.db.paths.find())
+    return render_template("pathList.html",paths=paths)
+
+@app.route('/path/<pathid>')
+def path(pathid):
+    return "OK"
+
 @app.route('/getPath',methods=["POST"])
 def getPath():
     _id = req.form.get('id')
