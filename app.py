@@ -97,9 +97,10 @@ def imageList():
 def findPath():
     checkbox = req.form.getlist("image")
     rest = req.form.get('rest')
+    opti = req.form.get('optimization')
     images = [mongo.db.filteringImage.find_one({"_id":ObjectId(_id)},{"_id":False}) for _id in checkbox]
     algorithm = req.form.get('algorithm')
-    para = {'objects':images,'rest':int(rest),"algorithm":algorithm}
+    para = {'objects':images,'rest':int(rest),"algorithm":algorithm,"optimization":int(opti)}
 
     res = requests.post(droneURL+"/calculatePath",data=json.dumps(para)).json()
     ret= json.dumps(res)
