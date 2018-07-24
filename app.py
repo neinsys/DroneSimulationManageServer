@@ -9,7 +9,7 @@ import numpy as np
 droneURL = "http://127.0.0.1:8080"
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://nein:nein7961!@neinsys.io:27017/nein"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/nein"
 mongo = PyMongo(app)
 
 @app.route('/')
@@ -36,9 +36,12 @@ def insertImagePost():
     files = req.files.getlist("file")
     files_dict_3d = {}
     files_dict_2d={}
+    files_dict_gif = {}
     for file in files:
         if file.filename[-4:].lower() == ".obj":
             files_dict_3d[file.filename]=file.read()
+        elif file.filename[-4:].lower()==".gif":
+            files_dict_gif[file.filename]=file
         else:
             files_dict_2d[file.filename]=file.read()
     #headers = {"content-type":"multipart/form-data"}
@@ -50,11 +53,26 @@ def insertImagePost():
         for pc in pcs:
 
             mongo.db.image.insert(pc)
+    imagelist = []
+    if files_dict_gif:
+        import imageio
+        for filename in files_dict_gif.keys():
+            gif = imageio.mimread(files_dict_gif[filename])
+            print("total frames : {}".format(len(gif)))
+
+            imgs = [cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in gif]
+
+            for i, img in enumerate(imgs):
+                imagelist.append((filename + ' ({})'.format(i),img))
+
     if files_dict_2d:
         for filename in files_dict_2d.keys():
             nparr = np.fromstring(files_dict_2d[filename], np.uint8)
             image = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+            imagelist.append((filename,image))
 
+    if imagelist:
+        for filename,image in imagelist:
             edge = cv2.Canny(image, 1, 200)
 
             image_dict = {}
