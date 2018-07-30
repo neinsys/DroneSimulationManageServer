@@ -5,6 +5,7 @@ import json
 import cv2
 from bson.objectid import ObjectId
 import numpy as np
+import copy
 
 droneURL = "http://127.0.0.1:8080"
 
@@ -26,6 +27,14 @@ def imageListForFiltering():
     images = mongo.db.image.find()
     return render_template("imageListForFiltering.html",images=images)
 
+@app.route('/api/imageListForFiltering')
+def imageListForFilteringJSON():
+    images = list(mongo.db.image.find())
+    images = sorted(images,key=lambda x:x["filename"])
+    for image in images:
+        image["_id"] = str(image["_id"])
+    return json.dumps(images)
+
 
 @app.route('/insertImage')
 def insertImage():
@@ -45,14 +54,15 @@ def insertImagePost():
         else:
             files_dict_2d[file.filename]=file.read()
     #headers = {"content-type":"multipart/form-data"}
-    ret = ""
+    ret = []
     if files_dict_3d:
         res = requests.post(droneURL+"/getPointsByObj",files=files_dict_3d)
         pcs = res.json()
-        ret = json.dumps(pcs)
         for pc in pcs:
 
             mongo.db.image.insert(pc)
+
+        ret = copy.deepcopy(pcs)
     imagelist = []
     if files_dict_gif:
         import imageio
@@ -87,7 +97,11 @@ def insertImagePost():
 
             print(cnt)
             mongo.db.image.insert(image_dict)
-    return ret
+            ret.append(copy.deepcopy(image_dict))
+    print(len(ret))
+    for image in ret:
+        image["_id"] = str(image["_id"])
+    return json.dumps(ret)
 
 @app.route('/filteringImage',methods=["POST"])
 def filteringImage():
@@ -107,9 +121,17 @@ def filteringImage():
 @app.route('/imageList')
 def imageList():
     images = list(mongo.db.filteringImage.find())
-
     images = sorted(images,key=lambda x:x["filename"])
     return render_template("imageList.html",images=images)
+
+@app.route('/api/imageList')
+def imageListJSON():
+    images = list(mongo.db.filteringImage.find())
+    images = sorted(images,key=lambda x:x["filename"])
+    for image in images:
+        image["_id"] = str(image["_id"])
+    return json.dumps(images)
+
 
 @app.route('/findPath',methods=["POST"])
 def findPath():
@@ -131,6 +153,13 @@ def findPath():
 def pathList():
     paths = list(mongo.db.paths.find())
     return render_template("pathList.html",paths=paths)
+
+@app.route('/api/pathList')
+def pathListJSON():
+    paths = list(mongo.db.paths.find())
+    for path in paths:
+        path["_id"] = str(path["_id"])
+    return json.dumps(paths)
 
 @app.route('/path/<pathid>')
 def path(pathid):
