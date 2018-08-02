@@ -22,12 +22,12 @@ def hello_world():
 
 @app.route('/imageListForFiltering')
 def imageListForFiltering():
-    images = mongo.db.image.find()
+    images = mongo.db.image.find({},{"points":False})
     return render_template("imageListForFiltering.html",images=images)
 
 @app.route('/api/imageListForFiltering')
 def imageListForFilteringJSON():
-    images = list(mongo.db.image.find())
+    images = list(mongo.db.image.find({},{"points":False}))
     images = sorted(images,key=lambda x:x["filename"])
     for image in images:
         image["_id"] = str(image["_id"])
@@ -116,13 +116,13 @@ def filteringImage():
 
 @app.route('/imageList')
 def imageList():
-    images = list(mongo.db.filteringImage.find())
+    images = list(mongo.db.filteringImage.find({},{"points":False}))
     images = sorted(images,key=lambda x:x["filename"])
     return render_template("imageList.html",images=images)
 
 @app.route('/api/imageList')
 def imageListJSON():
-    images = list(mongo.db.filteringImage.find())
+    images = list(mongo.db.filteringImage.find({},{"points":False}))
     images = sorted(images,key=lambda x:x["filename"])
     for image in images:
         image["_id"] = str(image["_id"])
@@ -146,12 +146,12 @@ def findPath():
 
 @app.route('/pathList')
 def pathList():
-    paths = list(mongo.db.paths.find())
+    paths = list(mongo.db.paths.find({},{"points":False}))
     return render_template("pathList.html",paths=paths)
 
 @app.route('/api/pathList')
 def pathListJSON():
-    paths = list(mongo.db.paths.find())
+    paths = list(mongo.db.paths.find({},{"points":False}))
     for path in paths:
         path["_id"] = str(path["_id"])
     return json.dumps(paths)
