@@ -10,7 +10,7 @@ import copy
 droneURL = "http://127.0.0.1:8080"
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/nein"
+app.config["MONGO_URI"] = "mongodb://nein:nein7961!@localhost:27017/nein"
 mongo = PyMongo(app)
 
 @app.route('/')
@@ -18,8 +18,6 @@ def hello_world():
     data = {'data':'test'}
     res = requests.post(droneURL+'/json_test',data=json.dumps(data))
     images=mongo.db.image.find()
-    for image in images:
-        print(image)
     return 'Hello World!'
 
 @app.route('/imageListForFiltering')
@@ -95,10 +93,8 @@ def insertImagePost():
                         image_dict["points"].append("{}.0 0.0 {}.0".format(-j,-i))
                         cnt = cnt + 1
 
-            print(cnt)
             mongo.db.image.insert(image_dict)
             ret.append(copy.deepcopy(image_dict))
-    print(len(ret))
     for image in ret:
         image["_id"] = str(image["_id"])
     return json.dumps(ret)
@@ -145,7 +141,6 @@ def findPath():
     res = requests.post(droneURL+"/calculatePath",data=json.dumps(para)).json()
     ret= json.dumps(res)
     mongo.db.paths.insert(res)
-    print(res['analysis'])
 
     return ret
 
