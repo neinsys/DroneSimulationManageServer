@@ -109,10 +109,10 @@ def filteringImage():
     para={"number":int(num),"objs":images,"leaf_size":float(leaf_size),"width":float(width)}
     res = requests.post(droneURL+"/filteringPoints",data=json.dumps(para))
     pcs = res.json()
-    ret = json.dumps(pcs)
     for pc in pcs:
         mongo.db.filteringImage.insert(pc)
-    return ret
+        pc["_id"] = str(pc["_id"])
+    return json.dumps(pcs)
 
 @app.route('/imageList')
 def imageList():
@@ -136,22 +136,24 @@ def findPath():
     opti = req.form.get('optimization')
     images = [mongo.db.filteringImage.find_one({"_id":ObjectId(_id)},{"_id":False}) for _id in checkbox]
     algorithm = req.form.get('algorithm')
+    name = req.form.get('name')
     para = {'objects':images,'rest':int(rest),"algorithm":algorithm,"optimization":int(opti)}
 
     res = requests.post(droneURL+"/calculatePath",data=json.dumps(para)).json()
-    ret= json.dumps(res)
+    res["name"]=name
+    res["disabled"]=False
     mongo.db.paths.insert(res)
-
-    return ret
+    res["_id"]=str(res["_id"])
+    return json.dumps(res)
 
 @app.route('/pathList')
 def pathList():
-    paths = list(mongo.db.paths.find({},{"points":False}))
+    paths = list(mongo.db.paths.find({},{"paths":False,"disabled":False}))
     return render_template("pathList.html",paths=paths)
 
 @app.route('/api/pathList')
 def pathListJSON():
-    paths = list(mongo.db.paths.find({},{"points":False}))
+    paths = list(mongo.db.paths.find({},{"paths":False,"disabled":False}))
     for path in paths:
         path["_id"] = str(path["_id"])
     return json.dumps(paths)
