@@ -22,7 +22,7 @@ def hello_world():
 
 @app.route('/imageListForFiltering')
 def imageListForFiltering():
-    images = mongo.db.image.find({},{"points":False})
+    images = mongo.db.image.find({})
     return render_template("imageListForFiltering.html",images=images)
 
 @app.route('/api/imageListForFiltering')
@@ -116,7 +116,7 @@ def filteringImage():
 
 @app.route('/imageList')
 def imageList():
-    images = list(mongo.db.filteringImage.find({},{"points":False}))
+    images = mongo.db.filteringImage.find({})
     images = sorted(images,key=lambda x:x["filename"])
     return render_template("imageList.html",images=images)
 
@@ -141,19 +141,19 @@ def findPath():
 
     res = requests.post(droneURL+"/calculatePath",data=json.dumps(para)).json()
     res["name"]=name
-    res["disabled"]=False
+    res["disabled"]=req.form.get("disabled",False)
     mongo.db.paths.insert(res)
     res["_id"]=str(res["_id"])
     return json.dumps(res)
 
 @app.route('/pathList')
 def pathList():
-    paths = list(mongo.db.paths.find({},{"paths":False,"disabled":False}))
+    paths = mongo.db.paths.find({"disabled":False},{"paths":False})
     return render_template("pathList.html",paths=paths)
 
 @app.route('/api/pathList')
 def pathListJSON():
-    paths = list(mongo.db.paths.find({},{"paths":False,"disabled":False}))
+    paths = list(mongo.db.paths.find({"disabled":False},{"paths":False}))
     for path in paths:
         path["_id"] = str(path["_id"])
     return json.dumps(paths)
