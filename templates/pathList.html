@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>pathList</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='button.css') }}">
 </head>
 <body>
 {% for path in paths %}
-    <a href="/path/{{ path._id }}">{{ path.name }}</a><br>
+    <div class="margin">
+        <a href="/path/{{ path._id }}">{{ path.name }}</a>
+    </div>
 {% endfor %}
 </body>
 </html>
