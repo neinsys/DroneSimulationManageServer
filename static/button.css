@@ -8,16 +8,22 @@ body:before{
   vertical-align:middle;
 }
 a{
+    display: block;
   background:#1AAB8A;
   color:#fff;
   border:none;
   position:relative;
-  height:60px;
+  height:40px;
   font-size:1.6em;
   padding:0 2em;
   cursor:pointer;
   transition:800ms ease all;
   outline:none;
+    width:120px;
+    text-align: center;
+    line-height: 40px;
+  white-space: nowrap;
+    margin: 0 auto;
 }
 a:hover{
   background:#fff;
@@ -46,4 +52,5 @@ a:hover:before,a:hover:after{
 
 div.margin{
     margin-bottom: 2px;
+    height:45px;
 }
