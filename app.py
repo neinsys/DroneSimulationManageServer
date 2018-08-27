@@ -57,7 +57,7 @@ def insertImagePost():
         res = requests.post(droneURL+"/getPointsByObj",files=files_dict_3d)
         pcs = res.json()
         for pc in pcs:
-
+            pc["number"]=len(pc["points"])
             mongo.db.image.insert(pc)
 
         ret = copy.deepcopy(pcs)
@@ -92,7 +92,7 @@ def insertImagePost():
                     if edge[i][j] > 0:
                         image_dict["points"].append("{}.0 0.0 {}.0".format(-j,-i))
                         cnt = cnt + 1
-
+            image_dict["number"]=len(image_dict["points"])
             mongo.db.image.insert(image_dict)
             ret.append(copy.deepcopy(image_dict))
     for image in ret:
@@ -106,10 +106,15 @@ def filteringImage():
     leaf_size=req.form.get("leaf_size")
     width=req.form.get("width")
     images = [mongo.db.image.find_one({"_id": ObjectId(_id)}, {"_id": False}) for _id in checkbox]
+    
+    for fimage,image in zip(images,checkbox):
+        if fimage is None:
+            return json.dumps({"error": "{} is not exist in image".format(image)})
     para={"number":int(num),"objs":images,"leaf_size":float(leaf_size),"width":float(width)}
     res = requests.post(droneURL+"/filteringPoints",data=json.dumps(para))
     pcs = res.json()
     for pc in pcs:
+        pc["number"]=len(pc["points"])
         mongo.db.filteringImage.insert(pc)
         pc["_id"] = str(pc["_id"])
     return json.dumps(pcs)
@@ -135,10 +140,13 @@ def findPath():
     rest = req.form.get('rest')
     opti = req.form.get('optimization')
     images = [mongo.db.filteringImage.find_one({"_id":ObjectId(_id)},{"_id":False}) for _id in checkbox]
+    for fimage,image in zip(images,checkbox):
+        if fimage is None:
+            return json.dumps({"error": "{} is not exist in filteringImage".format(image)})
     algorithm = req.form.get('algorithm')
     name = req.form.get('name')
     para = {'objects':images,'rest':int(rest),"algorithm":algorithm,"optimization":int(opti)}
-
+    #print(para)
     res = requests.post(droneURL+"/calculatePath",data=json.dumps(para)).json()
     res["name"]=name
     res["disabled"]=req.form.get("disabled",False)
@@ -162,10 +170,12 @@ def pathListJSON():
 def path(pathid):
     return "OK"
 
-@app.route('/getPath',methods=["POST"])
+@app.route('/getPath',methods=["GET","POST"])
 def getPath():
     _id = req.form.get('id')
     path = mongo.db.paths.find_one({"_id":ObjectId(_id)},{"_id":False})
+    if path is None: 
+        return json.dumps({"error": "{} is not exist in path".format(_id)})
     return json.dumps(path)
 
 if __name__ == '__main__':
