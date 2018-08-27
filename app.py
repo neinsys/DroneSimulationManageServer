@@ -168,7 +168,7 @@ def pathListJSON():
 
 @app.route('/path/<pathid>')
 def path(pathid):
-    return "OK"
+    return render_template("ok.html")
 
 @app.route('/getPath',methods=["GET","POST"])
 def getPath():
