@@ -71,7 +71,7 @@ def insertImagePost():
             imgs = [cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in gif]
 
             for i, img in enumerate(imgs):
-                imagelist.append((filename + ' ({})'.format(i),img))
+                imagelist.append((filename + ' ({num:03d})'.format(num=i),img))
 
     if files_dict_2d:
         for filename in files_dict_2d.keys():
