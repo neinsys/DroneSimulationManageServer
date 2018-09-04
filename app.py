@@ -17,17 +17,16 @@ mongo = PyMongo(app)
 def hello_world():
     data = {'data':'test'}
     res = requests.post(droneURL+'/json_test',data=json.dumps(data))
-    images=mongo.db.image.find()
     return 'Hello World!'
 
 @app.route('/imageListForFiltering')
 def imageListForFiltering():
-    images = mongo.db.image.find({})
+    images = mongo.db.image.find({'disabled':False})
     return render_template("imageListForFiltering.html",images=images)
 
 @app.route('/api/imageListForFiltering')
 def imageListForFilteringJSON():
-    images = list(mongo.db.image.find({},{"points":False}))
+    images = list(mongo.db.image.find({'disabled':False},{"points":False}))
     images = sorted(images,key=lambda x:x["filename"])
     for image in images:
         image["_id"] = str(image["_id"])
@@ -44,6 +43,7 @@ def insertImagePost():
     files_dict_3d = {}
     files_dict_2d={}
     files_dict_gif = {}
+    disabled = req.form.get('disabled',False)
     for file in files:
         if file.filename[-4:].lower() == ".obj":
             files_dict_3d[file.filename]=file.read()
@@ -58,6 +58,7 @@ def insertImagePost():
         pcs = res.json()
         for pc in pcs:
             pc["number"]=len(pc["points"])
+            pc["disabled"] = disabled
             mongo.db.image.insert(pc)
 
         ret = copy.deepcopy(pcs)
@@ -93,6 +94,7 @@ def insertImagePost():
                         image_dict["points"].append("{}.0 0.0 {}.0".format(-j,-i))
                         cnt = cnt + 1
             image_dict["number"]=len(image_dict["points"])
+            image_dict["disabled"]=disabled
             mongo.db.image.insert(image_dict)
             ret.append(copy.deepcopy(image_dict))
     for image in ret:
@@ -105,6 +107,7 @@ def filteringImage():
     num=req.form.get("number")
     leaf_size=req.form.get("leaf_size")
     width=req.form.get("width")
+    disabled=req.form.get("disabled",False)
     images = [mongo.db.image.find_one({"_id": ObjectId(_id)}, {"_id": False}) for _id in checkbox]
     
     for fimage,image in zip(images,checkbox):
@@ -115,19 +118,20 @@ def filteringImage():
     pcs = res.json()
     for pc in pcs:
         pc["number"]=len(pc["points"])
+        pc["disabled"]=disabled
         mongo.db.filteringImage.insert(pc)
         pc["_id"] = str(pc["_id"])
     return json.dumps(pcs)
 
 @app.route('/imageList')
 def imageList():
-    images = mongo.db.filteringImage.find({})
+    images = mongo.db.filteringImage.find({'disabled':False})
     images = sorted(images,key=lambda x:x["filename"])
     return render_template("imageList.html",images=images)
 
 @app.route('/api/imageList')
 def imageListJSON():
-    images = list(mongo.db.filteringImage.find({},{"points":False}))
+    images = list(mongo.db.filteringImage.find({'disabled':False},{"points":False}))
     images = sorted(images,key=lambda x:x["filename"])
     for image in images:
         image["_id"] = str(image["_id"])
